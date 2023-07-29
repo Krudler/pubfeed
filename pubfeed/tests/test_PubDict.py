@@ -135,14 +135,25 @@ def test_simple_args(create_test_pubdicts):
 
     assert get_result == 36
 
+
 def test_substitute_args(create_test_pubdicts):
     """
-    Providing additional ordered arguments when subscribing a callable to a key.
+    Should be able to specify when PubVal arguments should be passed to the subscribing
+    callable. 
     """
     numpub, strpub, empub = create_test_pubdicts
 
     set_result = None
     get_result = None
+
+    @numpub.subtoset('two', args=PubVal)
+    def multiply_three(x):
+        nonlocal set_result
+        set_result = 3 * x
+
+    set_result['two'] = 3
+
+    assert set_result == 9
 
     @numpub.subtoset('one', args=(PubVal))
     def multiply_one(x):
@@ -165,3 +176,37 @@ def test_substitute_args(create_test_pubdicts):
     _ = numpub[3]
     
     assert get_result == 12
+
+
+def test_replace_vals(create_test_pubdicts):
+    """
+    When setting and retrieving values in the dict we might want to change them before 
+    returning them. This can be used for a few things, including validating values before
+    settings or changing them in some way before returning. 
+    """
+    numpub, strpub, empub = create_test_pubdicts
+
+    @strpub.subtoset('one', replace_value=True)
+    def  complete_replace():
+        """
+        No matter what the value is for this key the output will always be the same. 
+        """
+
+        return 'STATIC_OUTPUT'
+    
+    strpub['one'] = 'first value'
+
+    assert strpub['one'] == 'STATIC_OUTPUT'
+
+    @strpub.subtoget('two', args = PubVal, replace_value=True)
+    def return_upper(x: str):
+        """
+        This function should replace the value with an uppercase version of the provided.
+        """
+
+        return x.upper()
+    
+    strpub['two'] = 'test value'
+
+    assert strpub['two'] == 'TEST VALUE'
+
