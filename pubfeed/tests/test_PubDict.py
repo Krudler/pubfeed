@@ -1,5 +1,5 @@
 import pytest
-from pubfeed.pubdict import PubDict as pubd, PubVal, PubKey
+from pubfeed.pubdict import PubDict as pubd, SubVal, SubKey, AllSubKeys
 
 @pytest.fixture
 def create_test_pubdicts():
@@ -138,7 +138,7 @@ def test_simple_args(create_test_pubdicts):
 
 def test_substitute_args(create_test_pubdicts):
     """
-    Should be able to specify when PubVal arguments should be passed to the subscribing
+    Should be able to specify when SubVal arguments should be passed to the subscribing
     callable. 
     """
     numpub, strpub, empub = create_test_pubdicts
@@ -146,7 +146,7 @@ def test_substitute_args(create_test_pubdicts):
     set_result = None
     get_result = None
 
-    @numpub.subtoset('two', args=PubVal)
+    @numpub.subtoset('two', args=SubVal)
     def multiply_three(x):
         nonlocal set_result
         set_result = 3 * x
@@ -155,7 +155,7 @@ def test_substitute_args(create_test_pubdicts):
 
     assert set_result == 9
 
-    @numpub.subtoset('one', args=(PubVal))
+    @numpub.subtoset('one', args=(SubVal))
     def multiply_one(x):
         nonlocal set_result
         set_result =  2 * x
@@ -164,7 +164,7 @@ def test_substitute_args(create_test_pubdicts):
 
     assert set_result == 6
 
-    @numpub.subtoget( 3 , kwargs={'x': PubKey, 'y':PubVal})
+    @numpub.subtoget( 3 , kwargs={'x': SubKey, 'y':SubVal})
     def multiply_two(x=1, y=1):
         nonlocal get_result
         get_result = x*y
@@ -198,7 +198,7 @@ def test_replace_vals(create_test_pubdicts):
 
     assert strpub['one'] == 'STATIC_OUTPUT'
 
-    @strpub.subtoget('two', args = PubVal, replace_value=True)
+    @strpub.subtoget('two', args = SubVal, replace_value=True)
     def return_upper(x: str):
         """
         This function should replace the value with an uppercase version of the provided.
@@ -210,3 +210,22 @@ def test_replace_vals(create_test_pubdicts):
 
     assert strpub['two'] == 'TEST VALUE'
 
+def test_sub_to_all_keys(create_test_pubdicts):
+    """
+    Subscribe a callable to all keys. When any key is set it should be squared and 
+    replace the original value.  
+    """
+
+    numpub, strpub, empub = create_test_pubdicts
+
+    @numpub.subtoset(AllSubKeys, args=SubVal, replace_vals=True)
+    def square(x):
+        return x * x
+    
+    numpub['one'] = 1
+    numpub['two'] = 2
+    numpub['three'] = 3
+
+    assert numpub['one'] == 1
+    assert numpub['two'] == 4
+    assert numpub['three'] == 9

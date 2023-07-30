@@ -1,13 +1,18 @@
-class PubVal(object):
+class SubVal(object):
     pass
 
 
-class PubKey(object):
+class SubKey(object):
+    pass
+
+
+class AllSubKeys(object):
     pass
 
 
 class PubDictException(Exception):
     pass
+
 
 class PubDictSub(object):
 
