@@ -42,10 +42,43 @@ def test_basic_method_sub(create_test_pubdicts):
     numpub.subtoget('one', on_get)
 
     numpub['one'] = 2
-    r = numpub['one']
+    _ = numpub['one']
 
     assert get_result == 3 
     assert set_result == 4
+
+
+def test_sub_to_multiple_keys(create_test_pubdicts):
+    """
+    Subscribe the same callable to multiple keys.
+    """
+    numpub, strpub, empub = create_test_pubdicts
+
+    get_result = []
+    set_result = []
+
+    def on_set():
+        nonlocal set_result
+        set_result.append(4) 
+    
+    def on_get():
+        nonlocal get_result
+        get_result.append(3) 
+     
+    numpub.subtoset(['one', 'two','three'], on_set)
+    numpub.subtoget(['one', 'two','three'], on_get)
+
+    numpub['one'] = 2
+    _ = numpub['one']
+    
+    numpub['two'] = 2
+    _ = numpub['two']
+    
+    numpub['three'] = 2
+    _ = numpub['three']
+
+    assert get_result == [3,3,3] 
+    assert set_result == [4,4,4]
 
 
 def test_basic_wrap_sub(create_test_pubdicts):
@@ -68,7 +101,7 @@ def test_basic_wrap_sub(create_test_pubdicts):
         get_result = 6
     
     numpub['one'] = 2
-    r = numpub['one']
+    _ = numpub['one']
 
     assert get_result == 6
     assert set_result == 5 
