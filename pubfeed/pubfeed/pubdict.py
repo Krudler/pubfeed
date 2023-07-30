@@ -1,15 +1,15 @@
 from collections import defaultdict
 from typing import Any
 
-class SubVal(object):
+class PubVal(object):
     pass
 
 
-class SubKey(object):
+class PubKey(object):
     pass
 
 
-class AllSubKeys(object):
+class AllPubKeys(object):
     pass
 
 
