@@ -106,6 +106,26 @@ def test_basic_wrap_sub(create_test_pubdicts):
     assert get_result == 6
     assert set_result == 5 
 
+def test_sub_to_getset(create_test_pubdicts):
+
+    numpub, strpub, empub = create_test_pubdicts
+
+    get_result = None
+    set_result = None
+
+    @numpub.subtogetandset('one')
+    def set_vals():
+        nonlocal get_result
+        nonlocal set_result
+        get_result = 'get'
+        set_result = 'set'
+
+    numpub['one'] = 1
+    _ = numpub['one']
+
+    assert get_result == 'get'
+    assert set_result == 'set'
+
 def test_sequence_sub(create_test_pubdicts):
     """
     Because more than one subscription can be added to a key we may want to
@@ -131,7 +151,7 @@ def test_sequence_sub(create_test_pubdicts):
         nonlocal set_results
         set_results.append('first')
 
-    @strpub.subtoget('one', exec_order=0) 
+    @strpub.subtoget('one', call_order=0) 
     def first_on_get():
         nonlocal get_results
         get_results.append('first')
@@ -150,9 +170,8 @@ def test_simple_args(create_test_pubdicts):
     numpub, strpub, empub = create_test_pubdicts
 
     set_result = None
-    get_result = None
 
-    @numpub.subtoset('one', args=(3))
+    @numpub.subtoset('one', args=(3,))
     def multiply_one(x):
         nonlocal set_result
         set_result =  2 * x
@@ -161,10 +180,18 @@ def test_simple_args(create_test_pubdicts):
 
     assert set_result == 6
 
+def test_simple_kwargs(create_test_pubdicts):
+
+    numpub, strpub, empub = create_test_pubdicts
+    
+    get_result = None
+
     @numpub.subtoget('one', kwargs={'x': 12, 'y':3})
     def multiply_two(x=1, y=1):
         nonlocal get_result
         get_result = x*y
+
+    _ = numpub['one']
 
     assert get_result == 36
 
@@ -184,7 +211,7 @@ def test_substitute_args(create_test_pubdicts):
         nonlocal set_result
         set_result = 3 * x
 
-    set_result['two'] = 3
+    numpub['two'] = 3
 
     assert set_result == 9
 
@@ -193,7 +220,7 @@ def test_substitute_args(create_test_pubdicts):
         nonlocal set_result
         set_result =  2 * x
     
-    numpub['one']  = 'one'
+    numpub['one']  = 3
 
     assert set_result == 6
 
@@ -211,7 +238,7 @@ def test_substitute_args(create_test_pubdicts):
     assert get_result == 12
 
 
-def test_replace_vals(create_test_pubdicts):
+def test_replace_value(create_test_pubdicts):
     """
     When setting and retrieving values in the dict we might want to change them before 
     returning them. This can be used for a few things, including validating values before
@@ -243,7 +270,28 @@ def test_replace_vals(create_test_pubdicts):
 
     assert strpub['two'] == 'TEST VALUE'
 
-def test_sub_to_all_keys(create_test_pubdicts):
+def test_simple_sub_to_all_keys(create_test_pubdicts):
+    """
+    Subscribe a callable to all keys. When any key is set it should be squared and 
+    replace the original value.  
+    """
+
+    numpub, strpub, empub = create_test_pubdicts
+    set_results = []
+    
+    @numpub.subtoset(AllPubKeys)
+    def square():
+        nonlocal set_results
+        set_results.append('x')
+    
+    numpub['one'] = 1
+    numpub['two'] = 2
+    numpub['three'] = 3
+
+    assert set_results == ['x','x','x']
+
+
+def test_sub_and_replace_to_all_keys(create_test_pubdicts):
     """
     Subscribe a callable to all keys. When any key is set it should be squared and 
     replace the original value.  
@@ -251,7 +299,7 @@ def test_sub_to_all_keys(create_test_pubdicts):
 
     numpub, strpub, empub = create_test_pubdicts
 
-    @numpub.subtoset(AllPubKeys, args=PubVal, replace_vals=True)
+    @numpub.subtoset(AllPubKeys, args=PubVal, replace_value=True)
     def square(x):
         return x * x
     
