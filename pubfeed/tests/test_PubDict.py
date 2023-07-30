@@ -238,6 +238,27 @@ def test_substitute_args(create_test_pubdicts):
     assert get_result == 12
 
 
+def test_simple_sub_to_all_keys(create_test_pubdicts):
+    """
+    Subscribe a callable to all keys. When any key is set it should be squared and 
+    replace the original value.  
+    """
+
+    numpub, strpub, empub = create_test_pubdicts
+    set_results = []
+    
+    @numpub.subtoset(AllPubKeys)
+    def square():
+        nonlocal set_results
+        set_results.append('x')
+    
+    numpub['one'] = 1
+    numpub['two'] = 2
+    numpub['three'] = 3
+
+    assert set_results == ['x','x','x']
+
+
 def test_replace_value(create_test_pubdicts):
     """
     When setting and retrieving values in the dict we might want to change them before 
@@ -269,26 +290,6 @@ def test_replace_value(create_test_pubdicts):
     strpub['two'] = 'test value'
 
     assert strpub['two'] == 'TEST VALUE'
-
-def test_simple_sub_to_all_keys(create_test_pubdicts):
-    """
-    Subscribe a callable to all keys. When any key is set it should be squared and 
-    replace the original value.  
-    """
-
-    numpub, strpub, empub = create_test_pubdicts
-    set_results = []
-    
-    @numpub.subtoset(AllPubKeys)
-    def square():
-        nonlocal set_results
-        set_results.append('x')
-    
-    numpub['one'] = 1
-    numpub['two'] = 2
-    numpub['three'] = 3
-
-    assert set_results == ['x','x','x']
 
 
 def test_sub_and_replace_to_all_keys(create_test_pubdicts):
