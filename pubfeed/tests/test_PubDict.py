@@ -311,3 +311,45 @@ def test_sub_and_replace_to_all_keys(create_test_pubdicts):
     assert numpub['one'] == 1
     assert numpub['two'] == 4
     assert numpub['three'] == 9
+
+def test_chained_replace(create_test_pubdicts):
+
+    numpub, strpub, empub = create_test_pubdicts
+
+    @numpub.subtoset(AllPubKeys, args=PubVal, replace_value=True)
+    def double(x):
+        return x * 2
+    
+    @numpub.subtoset(AllPubKeys, args=PubVal, replace_value=True)
+    def square(x):
+        return x * x 
+    
+
+    numpub['one'] = 1
+    numpub['two'] = 2
+    numpub['three'] = 3
+
+    assert numpub['one'] == 4
+    assert numpub['two'] == 16
+    assert numpub['three'] == 36
+
+def test_chained_replace_get_set(create_test_pubdicts):
+
+    numpub, strpub, empub = create_test_pubdicts
+
+    @numpub.subtoset(AllPubKeys, args=PubVal, replace_value=True)
+    def double(x):
+        return x * 2
+    
+    @numpub.subtoget('one', args=PubVal, replace_value=True)
+    def square(x):
+        return x * x 
+    
+
+    numpub['one'] = 1
+    numpub['two'] = 2
+    numpub['three'] = 3
+
+    assert numpub['one'] == 4
+    assert numpub['two'] == 4
+    assert numpub['three'] == 6
