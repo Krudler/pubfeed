@@ -57,12 +57,12 @@ class PubDict(dict):
         """
 
         def decorator_sub(func) -> None:
-            self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['get'], call_order=call_order)  
+            self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['get'], replace_value=replace_value, call_order=call_order)  
 
         if not func:
             return decorator_sub
         
-        self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['get'], call_order=call_order)  
+        self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['get'], replace_value=replace_value, call_order=call_order)  
 
 
     def subtoset(self, 
@@ -78,12 +78,12 @@ class PubDict(dict):
         """
 
         def decorator_sub(func) -> None:
-            self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['set'], call_order=call_order)  
+            self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['set'], replace_value=replace_value, call_order=call_order)  
 
         if not func:
             return decorator_sub
         
-        self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['set'], call_order=call_order)  
+        self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['set'], replace_value=replace_value, call_order=call_order)  
 
     def subtogetandset(self, 
                  keys: Union[Iterable[Hashable], Hashable, AllPubKeys],
@@ -98,12 +98,12 @@ class PubDict(dict):
         """
 
         def decorator_sub(func) -> None:
-            self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['get','set'], call_order=call_order)  
+            self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['get','set'], replace_value=replace_value, call_order=call_order)  
 
         if not func:
             return decorator_sub
         
-        self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['get','set'], call_order=call_order)  
+        self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['get','set'], replace_value=replace_value, call_order=call_order)  
 
 
 
@@ -135,9 +135,19 @@ class PubDict(dict):
                         pub_map[on_event][sub_index][key].append(subscriber)
 
     def _pub(self, pub_key, pub_val, pub_qs):
+        """
+        Here I need to track the outputs of the function calls. If the subscriber 
+        function has a replace value flag, then I need to replace the pub_val with the 
+        output value. 
+        """
+    
         for q in pub_qs:
             for subscriber in q:
-                subscriber.run_func(pub_key, pub_val)
+                sub_output = subscriber.run_func(pub_key, pub_val)
+                if subscriber.replace_value:
+                    pub_val = sub_output
+
+        return pub_val
 
 
     def __getitem__(self, __key: Any) -> None:
@@ -146,19 +156,22 @@ class PubDict(dict):
         pub_qs = []
         if self._subs_to_all_gets: pub_qs.append(self._subs_to_all_gets)
         if __key in self._subs_to_gets: pub_qs.append(self._subs_to_gets[__key])
-        if pub_qs: self._pub(__key, r, pub_qs)
+        if pub_qs: 
+            return self._pub(__key, r, pub_qs)
 
         return r
 
 
     def __setitem__(self, __key: Any, __value: Any) -> None:
-        r = super().__setitem__(__key, __value)
+        # r = super().__setitem__(__key, __value)
         pub_qs = []
         if self._subs_to_all_sets: pub_qs.append(self._subs_to_all_sets)
         if __key in self._subs_to_sets: pub_qs.append(self._subs_to_sets[__key])
-        if pub_qs: self._pub(__key, __value, pub_qs)       
+        if pub_qs: 
+            return super().__setitem__(__key, self._pub(__key, __value, pub_qs))       
 
-        return r
+        return super().__setitem__(__key, __value)
+
 
 class PubDictSubscriber(object):
     """
@@ -174,7 +187,7 @@ class PubDictSubscriber(object):
                  func: Callable,
                  args: Optional[Union[str, tuple]] = None,
                  kwargs: Optional[dict] = None,
-                 replace_vals: bool = False,
+                 replace_value: bool = False,
                  on_events: Union[str, list[str]] = None,
                  call_order: Optional[int] = None,
                  publisher: PubDict = None
@@ -184,7 +197,7 @@ class PubDictSubscriber(object):
         self.func = func
         self.args = self._validate_args(args) 
         self.kwargs = kwargs if kwargs else {}
-        self.replace_vals = replace_vals
+        self.replace_value = replace_value
         self.on_events = [on_events] if isinstance(on_events, str) else on_events
         self.call_order = call_order
         self.publisher = publisher
