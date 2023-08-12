@@ -32,9 +32,10 @@ class PubDictException(Exception):
     """
     pass
 
+
 class PubDict(dict):
     """
-    A dictionary that can published get and set event to subscribed callables.
+    A dictionary that can publish get and set events to subscribed callables.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,7 +54,8 @@ class PubDict(dict):
                  call_order: Optional[int] = None,
     ) -> None:
         """
-        Subscribe a callable to a get function. 
+        Subscribe a callable to a get key. Every time a value is retrieved for the key 
+        the following the callable will be executed.  
         """
 
         def decorator_sub(func) -> None:
@@ -106,8 +108,10 @@ class PubDict(dict):
         self._sub(keys=keys, func=func, args=args, kwargs=kwargs, on_events=['get','set'], replace_value=replace_value, call_order=call_order)  
 
 
-
     def _sub(self, *args, **kwargs) -> None: 
+        """
+        Not for direct use. This method adds a subscriber for the specified event. 
+        """
         kwargs['publisher'] = self
         subscriber = PubDictSubscriber(*args, **kwargs)
 
@@ -136,9 +140,10 @@ class PubDict(dict):
 
     def _pub(self, pub_key, pub_val, pub_qs):
         """
-        Here I need to track the outputs of the function calls. If the subscriber 
-        function has a replace value flag, then I need to replace the pub_val with the 
-        output value. 
+        Not for direct use. Publishes the key and value to the subscribers in the pub_qs.
+        Also handles the replacing of values if the subscriber specifies that the value 
+        should be replaced. Note that this method does not handle the order of the 
+        callables, that's handled by the ques themselves. 
         """
     
         for q in pub_qs:
