@@ -2,7 +2,7 @@
 name = "pubfeed"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Tito Malone"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
