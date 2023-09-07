@@ -353,3 +353,20 @@ def test_chained_replace_get_set(create_test_pubdicts):
     assert numpub['one'] == 4
     assert numpub['two'] == 4
     assert numpub['three'] == 6
+
+
+def test_lambda_function(create_test_pubdicts):
+
+    numpub, strpub, empub = create_test_pubdicts
+
+    strpub.subtoset('one', lambda: print("Ahoy"))
+    
+    strpub['one'] = 1
+
+    # replace value with lambda
+
+    strpub.subtoset('one', lambda x: x*2, replace_value=True, args=PubVal)
+
+    strpub['one'] = 2
+
+    assert strpub['one'] == 4
