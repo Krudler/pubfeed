@@ -5,12 +5,6 @@ A simple package for python sub/pub patterns.
 
 An easy and lightweight way to implement a pub/sub pattern and create lightweight pipelines using familiar dictionary-like affordances.
 
-## Installation
-
-```cmd
-pip install pubfeed 
-```
-
 ## Usage
 
 Some simple examples of executing callables. For a more comprehensive look at what can be done refer to ./pubfeed/tests/test_PubDict.py. 
