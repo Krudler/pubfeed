@@ -13,7 +13,7 @@ pip install pubfeed
 
 ## Usage
 
-Some simple examples of executing callables. For a more comprehensive look at what can be done have a look at the test file. 
+Some simple examples of executing callables. For a more comprehensive look at what can be done refer to ./pubfeed/tests/test_PubDict.py. 
 
 ### Basic usage
 
